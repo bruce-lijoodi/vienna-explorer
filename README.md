@@ -1,6 +1,6 @@
 # Vienna Explorer
 
-An interactive web map of Vienna built to help tourists and new residents explore the city's key facilities and environmental conditions.
+An interactive spatial analysis platform for Vienna: visualising urban heat vulnerability, facility access, and district-level patterns across the city.
 
 ## Features
 
