@@ -2,6 +2,8 @@
 
 An interactive spatial analysis platform for Vienna: visualising urban heat vulnerability, facility access, and district-level patterns across the city.
 
+**Live app:** https://gregarious-syrniki-9a796f.netlify.app
+
 ## Features
 
 - **District choropleth:** visualises the Urban Heat Vulnerability Index (UHVI) across Vienna's 23 districts
