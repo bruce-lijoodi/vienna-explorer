@@ -359,7 +359,8 @@ function addShapeImage(imageId, color, shape) {
 
   ctx.fill();
   ctx.stroke();
-  map.addImage(imageId, canvas);
+  const px = ctx.getImageData(0, 0, size, size);
+  map.addImage(imageId, { width: size, height: size, data: new Uint8Array(px.data.buffer) });
 }
 
 function addLayers() {
