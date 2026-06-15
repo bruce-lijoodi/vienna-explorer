@@ -576,6 +576,24 @@ input[type="range"]:disabled {
   margin-bottom: 0;
 }
 
+.directions-btn {
+  display: block;
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.15s;
+}
+.directions-btn:hover {
+  background: var(--ink-soft);
+}
+
 .popup-stat {
   display: flex;
   justify-content: space-between;

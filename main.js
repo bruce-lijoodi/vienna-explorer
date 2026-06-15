@@ -604,7 +604,7 @@ function setupInteractions() {
   for (const { id, label } of FAMILY_LAYERS) {
     const layerId = `${id}-points`;
     map.on('click', layerId, e => {
-      openPopup(e.lngLat, buildFamilyCard(label, e.features[0].properties));
+      openPopup(e.lngLat, buildFamilyCard(label, e.features[0].properties, e.features[0].geometry.coordinates));
     });
     map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
@@ -1134,7 +1134,7 @@ function csvToGeoJSON(text) {
   return { type: 'FeatureCollection', features };
 }
 
-function buildFamilyCard(layerLabel, p) {
+function buildFamilyCard(layerLabel, p, coords) {
   const name = p.BEZEICHNUNG || p.STANDORT || p.FILIALE || p.NAME || p.OBJNAME || p.ANL_NAME || layerLabel;
   const addr = p.ADRESSE || p.STRASSE || p.STREET || '';
   const rows = [
@@ -1159,11 +1159,21 @@ function buildFamilyCard(layerLabel, p) {
     p.WEBLINK1          && `<div class="popup-stat"><span>Website</span><strong><a href="${p.WEBLINK1}" target="_blank" style="color:var(--blue)">Open ↗</a></strong></div>`,
     p.WEBSITE           && `<div class="popup-stat"><span>Website</span><strong><a href="${p.WEBSITE}" target="_blank" style="color:var(--blue)">Open ↗</a></strong></div>`,
   ].filter(Boolean).join('');
+  let directionsHref = '';
+  if (coords) {
+    const [lng, lat] = coords;
+    const dest = addr
+      ? encodeURIComponent(`${addr}, Vienna, Austria`)
+      : `${lat},${lng}`;
+    directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
+  }
+
   return `
     <div class="map-popup-card">
       <h4>${name}</h4>
       <span class="popup-meta" style="background:var(--green)">${layerLabel}</span>
       ${rows || '<p style="font-size:.75rem;color:var(--ink-muted);padding:4px 0">No attributes available</p>'}
+      ${directionsHref ? `<a class="directions-btn" href="${directionsHref}" target="_blank" rel="noopener">Get Directions ↗</a>` : ''}
     </div>`;
 }
 
