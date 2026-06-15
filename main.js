@@ -464,6 +464,21 @@ function setupInteractions() {
     map.getCanvas().style.cursor = '';
   });
 
+  // Hover — sub-districts (heat mode): look up parent district and show bottom bar
+  map.on('mousemove', 'subdistricts-fill', e => {
+    const zbez = e.features[0]?.properties?.ZBEZ;
+    if (!zbez) return;
+    const distNum = parseInt(zbez.slice(0, -2));
+    const distFeature = districtsGeoJSON?.features?.find(f => Math.round(f.properties.BEZNR) === distNum);
+    if (distFeature) showHoverInfo(distFeature.properties);
+    map.getCanvas().style.cursor = 'pointer';
+  });
+
+  map.on('mouseleave', 'subdistricts-fill', () => {
+    document.getElementById('district-info').classList.remove('visible');
+    map.getCanvas().style.cursor = '';
+  });
+
   // Click — districts: move circle center, also select in districts mode
   map.on('click', 'districts-fill', e => {
     const onCrime = map.queryRenderedFeatures(e.point, { layers: ['crime-points', 'crime-clusters'] });
