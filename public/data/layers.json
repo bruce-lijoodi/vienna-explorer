@@ -1,12 +1,12 @@
 [
-  { "id": "playgrounds",   "file": "Playgrounds.json",   "color": "#e67e22", "label": "Playgrounds"   },
-  { "id": "kindergartens", "wfsType": "KINDERGARTENOGD", "color": "#16a085", "label": "Kindergartens" },
-  { "id": "schools",       "file": "Schools.json",       "color": "#8e44ad", "label": "Schools"       },
-  { "id": "parks",         "file": "Parks.json",         "color": "#27ae60", "label": "Parks"         },
-  { "id": "advisory",       "file": "Advisory Centers for Care and Support.json", "color": "#0097a7", "label": "Advisory Centers" },
-  { "id": "defibrillators",    "file": "DEFIBRILLATOROS.json",                      "color": "#e53935", "label": "Defibrillators"        },
-  { "id": "cultural-summer", "file": "Cultural Summer Locations.json",             "color": "#f57c00", "label": "Cultural Summer"       },
-  { "id": "tourist",         "file": "Tourist categories Locations.json",          "color": "#039be5", "label": "Tourist Spots"         },
-  { "id": "city-payments",  "file": "Acceptance of cash and non-cash payments for all claims of the City of Vienna..json", "color": "#546e7a", "label": "City Payment Offices" },
-  { "id": "bank-branches", "file": "Accessible Bank Branches.json", "color": "#43a047", "label": "Accessible Banks" }
+  { "id": "playgrounds",    "file": "Playgrounds.json",   "color": "#d4763b", "label": "Playgrounds"         },
+  { "id": "kindergartens",  "wfsType": "KINDERGARTENOGD", "color": "#6aaa8a", "label": "Kindergartens"       },
+  { "id": "schools",        "file": "Schools.json",       "color": "#7a5aad", "label": "Schools"             },
+  { "id": "parks",          "file": "Parks.json",         "color": "#4a8e6e", "label": "Parks"               },
+  { "id": "advisory",       "file": "Advisory Centers for Care and Support.json", "color": "#5b8aaa", "label": "Advisory Centers" },
+  { "id": "defibrillators", "file": "DEFIBRILLATOROS.json",                      "color": "#c0504a", "label": "Defibrillators"   },
+  { "id": "cultural-summer","file": "Cultural Summer Locations.json",             "color": "#c9a84c", "label": "Cultural Summer"  },
+  { "id": "tourist",        "file": "Tourist categories Locations.json",          "color": "#6b8cba", "label": "Tourist Spots"    },
+  { "id": "city-payments",  "file": "Acceptance of cash and non-cash payments for all claims of the City of Vienna..json", "color": "#8a8aaa", "label": "City Payment Offices" },
+  { "id": "bank-branches",  "file": "Accessible Bank Branches.json",              "color": "#5a8a7a", "label": "Accessible Banks" }
 ]

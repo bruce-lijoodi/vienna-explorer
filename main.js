@@ -26,15 +26,9 @@ const TOURIST_CATEGORIES = [
   { de: 'Verkehr & Transport',           en: 'Transport',          default: false },
 ];
 
-// Choropleth: district area in km² → gold → dark ink
-const AREA_COLOR = [
-  'step', ['get', '_area'],
-  '#e8d5a3',  //  0–5  km²
-   5, '#c9a84c',
-  10, '#a07a2a',
-  20, '#6b4e15',
-  40, '#3d3530',
-];
+// Flat warm cream used for district boundaries in non-heat mode
+// Area is already visible on the map; encoding it again adds no information
+const DISTRICT_FILL = '#e8d5a3';
 
 // Choropleth: UHVI score → yellow → dark red
 const UHVI_COLOR = [
@@ -297,13 +291,13 @@ function addSources(districts, labels, crime, subDistricts) {
 }
 
 function addLayers() {
-  // District fill — choropleth by area
+  // District fill — neutral base; hover/select states communicate interactivity
   map.addLayer({
     id: 'districts-fill',
     type: 'fill',
     source: 'districts',
     paint: {
-      'fill-color': AREA_COLOR,
+      'fill-color': DISTRICT_FILL,
       'fill-opacity': [
         'case',
         ['boolean', ['feature-state', 'selected'], false], 0.72,
@@ -434,7 +428,7 @@ function addLayers() {
       type: 'circle',
       source: id,
       paint: {
-        'circle-radius':       ['interpolate', ['linear'], ['zoom'], 10, 4, 15, 8],
+        'circle-radius':       ['interpolate', ['linear'], ['zoom'], 9, 2, 12, 4, 16, 8],
         'circle-color':        color,
         'circle-opacity':      0.85,
         'circle-stroke-width': 1.5,
@@ -583,23 +577,20 @@ function showHoverInfo(p) {
 
 function buildLegend(mode = 'districts') {
   const panel = document.getElementById('legend-panel');
-  const isHeat = mode === 'heat';
+  if (mode !== 'heat') {
+    panel.classList.remove('visible');
+    return;
+  }
 
-  panel.querySelector('h4').textContent = isHeat ? 'Heat Vulnerability' : 'Area (km²)';
+  panel.querySelector('h4').textContent = 'Heat Vulnerability';
 
-  const items = isHeat ? [
+  const items = [
     { color: '#cccccc', label: 'No data'       },
     { color: '#ffffb2', label: '< 0.55 (Low)'  },
     { color: '#fecc5c', label: '0.55 – 0.65'   },
     { color: '#fd8d3c', label: '0.65 – 0.75'   },
     { color: '#f03b20', label: '0.75 – 0.85'   },
     { color: '#bd0026', label: '> 0.85 (High)' },
-  ] : [
-    { color: '#e8d5a3', label: '0–5 km²'   },
-    { color: '#c9a84c', label: '5–10 km²'  },
-    { color: '#a07a2a', label: '10–20 km²' },
-    { color: '#6b4e15', label: '20–40 km²' },
-    { color: '#3d3530', label: '> 40 km²'  },
   ];
 
   document.getElementById('legend-rows').innerHTML = items.map(s => `
@@ -839,7 +830,6 @@ function applyMode(mode) {
   map.setLayoutProperty('subdistricts-fill', 'visibility', heatVis);
   map.setLayoutProperty('subdistricts-line', 'visibility', heatVis);
   map.setLayoutProperty('districts-fill', 'visibility', mode === 'heat' ? 'none' : 'visible');
-  map.setPaintProperty('districts-fill', 'fill-color', AREA_COLOR);
 
   buildLegend(mode);
 
