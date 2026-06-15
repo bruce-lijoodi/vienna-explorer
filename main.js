@@ -170,6 +170,9 @@ function buildSkeleton() {
       </div>
     </div>
 
+    <button class="mobile-toggle" id="mobile-left-toggle" aria-label="Toggle layers">☰</button>
+    <button class="mobile-toggle mobile-toggle-right" id="mobile-right-toggle" aria-label="Toggle analysis">⊞</button>
+
     <header class="app-header">
       <h1>Vienna Explorer</h1>
       <span class="tagline">District &amp; Family Explorer</span>
@@ -719,6 +722,21 @@ function wireControls() {
 
   document.getElementById('intro-close').addEventListener('click', () => {
     document.getElementById('intro-overlay').classList.add('hidden');
+  });
+
+  document.getElementById('mobile-left-toggle').addEventListener('click', () => {
+    document.querySelector('.layer-switcher').classList.toggle('mobile-open');
+    document.querySelector('.map-panel').classList.remove('mobile-open');
+  });
+
+  document.getElementById('mobile-right-toggle').addEventListener('click', () => {
+    document.querySelector('.map-panel').classList.toggle('mobile-open');
+    document.querySelector('.layer-switcher').classList.remove('mobile-open');
+  });
+
+  document.getElementById('map').addEventListener('click', () => {
+    document.querySelector('.layer-switcher').classList.remove('mobile-open');
+    document.querySelector('.map-panel').classList.remove('mobile-open');
   });
 }
 
