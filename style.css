@@ -185,12 +185,19 @@ html, body {
   border-color: var(--ink);
 }
 
-.layer-btn .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.layer-btn .dot,
+.popup-stat .dot {
+  width: 10px;
+  height: 10px;
   flex-shrink: 0;
+  display: inline-block;
 }
+.dot-circle   { border-radius: 50%; }
+.dot-square   { border-radius: 2px; }
+.dot-diamond  { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+.dot-triangle { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); }
+.dot-star     { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.dot-cross    { clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%); }
 
 /* ── CONTROL PANEL ── */
 .map-panel {

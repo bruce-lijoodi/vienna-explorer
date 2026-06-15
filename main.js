@@ -136,10 +136,10 @@ async function main() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function buildSkeleton() {
-  const familyCountRows = FAMILY_LAYERS.map(({ id, color, label }) => `
+  const familyCountRows = FAMILY_LAYERS.map(({ id, color, label, shape = 'circle' }) => `
     <div class="popup-stat">
       <span style="display:flex;align-items:center;gap:6px">
-        <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>${label}
+        <span class="dot dot-${shape}" style="background:${color}"></span>${label}
       </span>
       <strong id="count-${id}">—</strong>
     </div>`).join('');
@@ -191,9 +191,9 @@ function buildSkeleton() {
         <span class="dot" style="background:#f03b20"></span>Heat Index
       </button>
       <div class="layer-divider"></div>
-      ${FAMILY_LAYERS.map(({ id, color, label }) => `
+      ${FAMILY_LAYERS.map(({ id, color, label, shape = 'circle' }) => `
       <button class="layer-btn active" data-toggle-layer="${id}">
-        <span class="dot" style="background:${color}"></span>${label}
+        <span class="dot dot-${shape}" style="background:${color}"></span>${label}
       </button>
       ${id === 'tourist' ? `
       <div class="cat-filter visible" id="tourist-cat-filter">
@@ -288,6 +288,75 @@ function addSources(districts, labels, crime, subDistricts) {
   for (const { id } of FAMILY_LAYERS) {
     map.addSource(id, { type: 'geojson', data: emptyFC() });
   }
+}
+
+function addShapeImage(imageId, color, shape) {
+  const size = 28;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const h = size / 2;
+  const pad = 2.5;
+
+  ctx.fillStyle = color;
+  ctx.strokeStyle = '#f5f0e8';
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  switch (shape) {
+    case 'square': {
+      ctx.roundRect(pad, pad, size - pad * 2, size - pad * 2, 2);
+      break;
+    }
+    case 'diamond':
+      ctx.moveTo(h, pad);
+      ctx.lineTo(size - pad, h);
+      ctx.lineTo(h, size - pad);
+      ctx.lineTo(pad, h);
+      ctx.closePath();
+      break;
+    case 'triangle':
+      ctx.moveTo(h, pad);
+      ctx.lineTo(size - pad, size - pad);
+      ctx.lineTo(pad, size - pad);
+      ctx.closePath();
+      break;
+    case 'star': {
+      const outer = h - pad;
+      const inner = outer * 0.42;
+      for (let i = 0; i < 10; i++) {
+        const angle = (i * Math.PI / 5) - Math.PI / 2;
+        const r = i % 2 === 0 ? outer : inner;
+        const x = h + r * Math.cos(angle);
+        const y = h + r * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      break;
+    }
+    case 'cross': {
+      const arm = size * 0.22;
+      ctx.moveTo(h - arm, pad);
+      ctx.lineTo(h + arm, pad);
+      ctx.lineTo(h + arm, h - arm);
+      ctx.lineTo(size - pad, h - arm);
+      ctx.lineTo(size - pad, h + arm);
+      ctx.lineTo(h + arm, h + arm);
+      ctx.lineTo(h + arm, size - pad);
+      ctx.lineTo(h - arm, size - pad);
+      ctx.lineTo(h - arm, h + arm);
+      ctx.lineTo(pad, h + arm);
+      ctx.lineTo(pad, h - arm);
+      ctx.lineTo(h - arm, h - arm);
+      ctx.closePath();
+      break;
+    }
+  }
+
+  ctx.fill();
+  ctx.stroke();
+  map.addImage(imageId, canvas);
 }
 
 function addLayers() {
@@ -422,20 +491,40 @@ function addLayers() {
     paint: { 'line-color': '#2c5f8a', 'line-width': 2.5 },
   });
 
-  for (const { id, color } of FAMILY_LAYERS) {
-    map.addLayer({
-      id: `${id}-points`,
-      type: 'circle',
-      source: id,
-      paint: {
-        'circle-radius':       ['interpolate', ['linear'], ['zoom'], 9, 2, 12, 4, 16, 8],
-        'circle-color':        color,
-        'circle-opacity':      0.85,
-        'circle-stroke-width': 1.5,
-        'circle-stroke-color': '#f5f0e8',
-      },
-      layout: { visibility: 'visible' },
-    });
+  for (const { id, color, shape = 'circle' } of FAMILY_LAYERS) {
+    if (shape === 'circle') {
+      map.addLayer({
+        id: `${id}-points`,
+        type: 'circle',
+        source: id,
+        paint: {
+          'circle-radius':       ['interpolate', ['linear'], ['zoom'], 9, 2, 12, 4, 16, 8],
+          'circle-color':        color,
+          'circle-opacity':      0.85,
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#f5f0e8',
+        },
+        layout: { visibility: 'visible' },
+      });
+    } else {
+      const imageId = `${id}-icon`;
+      addShapeImage(imageId, color, shape);
+      map.addLayer({
+        id: `${id}-points`,
+        type: 'symbol',
+        source: id,
+        layout: {
+          'icon-image':            imageId,
+          'icon-size':             ['interpolate', ['linear'], ['zoom'], 9, 0.22, 12, 0.44, 16, 0.85],
+          'icon-allow-overlap':    true,
+          'icon-ignore-placement': true,
+          'visibility':            'visible',
+        },
+        paint: {
+          'icon-opacity': 0.88,
+        },
+      });
+    }
   }
 }
 
