@@ -122,6 +122,48 @@ html, body {
   margin: 2px 0;
 }
 
+.cat-filter {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 4px 10px;
+  border-left: 2px solid var(--border);
+  margin-left: 8px;
+}
+
+.cat-filter.visible {
+  display: flex;
+}
+
+.cat-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.12s;
+  white-space: nowrap;
+}
+
+.cat-btn::before {
+  content: '○ ';
+  font-size: 0.6rem;
+}
+
+.cat-btn.active {
+  color: var(--ink);
+}
+
+.cat-btn.active::before {
+  content: '● ';
+  color: var(--gold);
+}
+
 .layer-btn .dot {
   width: 8px;
   height: 8px;

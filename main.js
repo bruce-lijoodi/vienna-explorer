@@ -15,6 +15,17 @@ const WFS_BASE = 'https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeatu
 
 let FAMILY_LAYERS = []; // populated at runtime from /data/layers.json
 
+const TOURIST_CATEGORIES = [
+  { de: 'Sightseeing',                    en: 'Sightseeing',        default: true  },
+  { de: 'Musik & Theater',                en: 'Music & Theatre',    default: true  },
+  { de: 'Freizeit, Unterhaltung & Sport', en: 'Leisure & Sport',    default: true  },
+  { de: 'Touren & Guides',               en: 'Tours & Guides',     default: true  },
+  { de: 'Essen, Trinken & Nightlife',    en: 'Dining & Nightlife', default: false },
+  { de: 'Unterkünfte',                   en: 'Accommodation',      default: false },
+  { de: 'Infrastruktur',                 en: 'Infrastructure',     default: false },
+  { de: 'Verkehr & Transport',           en: 'Transport',          default: false },
+];
+
 // Choropleth: district area in km² → gold → dark ink
 const AREA_COLOR = [
   'step', ['get', '_area'],
@@ -51,9 +62,10 @@ const state = {
   mode:         'heat',
   hoveredId:    null,
   selectedId:   null,
-  radiusKm:     1,
-  radiusCenter: null,
-  showHeatmap:  false,
+  radiusKm:          1,
+  radiusCenter:      null,
+  showHeatmap:       false,
+  activeTouristCats: new Set(TOURIST_CATEGORIES.filter(c => c.default).map(c => c.de)),
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -184,7 +196,12 @@ function buildSkeleton() {
       ${FAMILY_LAYERS.map(({ id, color, label }) => `
       <button class="layer-btn active" data-toggle-layer="${id}">
         <span class="dot" style="background:${color}"></span>${label}
-      </button>`).join('')}
+      </button>
+      ${id === 'tourist' ? `
+      <div class="cat-filter visible" id="tourist-cat-filter">
+        ${TOURIST_CATEGORIES.map(c => `
+        <button class="cat-btn${c.default ? ' active' : ''}" data-cat="${c.de}">${c.en}</button>`).join('')}
+      </div>` : ''}`).join('')}
     </nav>
 
     <aside class="map-panel">
@@ -624,7 +641,30 @@ function wireControls() {
       const isVisible = map.getLayoutProperty(layerId, 'visibility') === 'visible';
       map.setLayoutProperty(layerId, 'visibility', isVisible ? 'none' : 'visible');
       btn.classList.toggle('active', !isVisible);
+      if (btn.dataset.toggleLayer === 'tourist') {
+        document.getElementById('tourist-cat-filter')?.classList.toggle('visible', !isVisible);
+      }
       syncToggleAllBtn();
+    });
+  });
+
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.cat;
+      if (state.activeTouristCats.has(cat)) {
+        state.activeTouristCats.delete(cat);
+        btn.classList.remove('active');
+      } else {
+        state.activeTouristCats.add(cat);
+        btn.classList.add('active');
+      }
+      if (state.radiusCenter) {
+        const circle = turf.circle(
+          [state.radiusCenter.lng, state.radiusCenter.lat],
+          state.radiusKm, { units: 'kilometers' }
+        );
+        updateRadiusOverlay(circle);
+      }
     });
   });
 
@@ -641,6 +681,7 @@ function wireControls() {
     document.querySelectorAll('.layer-btn[data-toggle-layer]').forEach(b =>
       b.classList.toggle('active', !anyActive)
     );
+    document.getElementById('tourist-cat-filter')?.classList.toggle('visible', !anyActive);
 
     // Toggle Heat Index
     const newMode = anyActive ? 'districts' : 'heat';
@@ -830,6 +871,7 @@ function updateRadiusOverlay(circle) {
     const data = familyData[id];
     const inCircle = data?.features?.length
       ? data.features.filter(f => {
+          if (id === 'tourist' && !state.activeTouristCats.has(f.properties.CATEGORY_NAME)) return false;
           if (f.geometry?.type !== 'Point') return false;
           const [lng, lat] = f.geometry.coordinates;
           if (lng < minLng || lng > maxLng || lat < minLat || lat > maxLat) return false;
