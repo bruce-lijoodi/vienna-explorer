@@ -510,23 +510,43 @@ function addLayers() {
         layout: { visibility: 'visible' },
       });
     } else {
-      const imageId = `${id}-icon`;
-      addShapeImage(imageId, color, shape);
-      map.addLayer({
-        id: `${id}-points`,
-        type: 'symbol',
-        source: id,
-        layout: {
-          'icon-image':            imageId,
-          'icon-size':             ['interpolate', ['linear'], ['zoom'], 9, 0.22, 12, 0.44, 16, 0.85],
-          'icon-allow-overlap':    true,
-          'icon-ignore-placement': true,
-          'visibility':            'visible',
-        },
-        paint: {
-          'icon-opacity': 0.88,
-        },
-      });
+      let usedShape = shape;
+      try {
+        addShapeImage(`${id}-icon`, color, shape);
+      } catch (e) {
+        console.warn(`Shape image failed for ${id}, falling back to circle`, e);
+        usedShape = 'circle';
+      }
+
+      if (usedShape !== 'circle') {
+        map.addLayer({
+          id: `${id}-points`,
+          type: 'symbol',
+          source: id,
+          layout: {
+            'icon-image':            `${id}-icon`,
+            'icon-size':             ['interpolate', ['linear'], ['zoom'], 9, 0.22, 12, 0.44, 16, 0.85],
+            'icon-allow-overlap':    true,
+            'icon-ignore-placement': true,
+            'visibility':            'visible',
+          },
+          paint: { 'icon-opacity': 0.88 },
+        });
+      } else {
+        map.addLayer({
+          id: `${id}-points`,
+          type: 'circle',
+          source: id,
+          paint: {
+            'circle-radius':       ['interpolate', ['linear'], ['zoom'], 9, 2, 12, 4, 16, 8],
+            'circle-color':        color,
+            'circle-opacity':      0.85,
+            'circle-stroke-width': 1.5,
+            'circle-stroke-color': '#f5f0e8',
+          },
+          layout: { visibility: 'visible' },
+        });
+      }
     }
   }
 }
