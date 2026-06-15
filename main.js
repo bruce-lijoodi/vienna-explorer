@@ -599,11 +599,12 @@ function wireControls() {
   document.querySelectorAll('.layer-btn[data-layer]').forEach(btn => {
     btn.addEventListener('click', () => {
       const layer = btn.dataset.layer;
-      if (layer === state.mode) return;
-      state.mode = layer;
+      const newMode = layer === state.mode ? 'districts' : layer;
+      state.mode = newMode;
       document.querySelectorAll('.layer-btn[data-layer]').forEach(b =>
-        b.classList.toggle('active', b.dataset.layer === layer));
-      applyMode(layer);
+        b.classList.toggle('active', b.dataset.layer === newMode));
+      applyMode(newMode);
+      syncToggleAllBtn();
     });
   });
 
