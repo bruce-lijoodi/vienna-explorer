@@ -157,8 +157,8 @@ function buildSkeleton() {
       <div class="intro-card">
         <h2>Vienna Explorer</h2>
         <p class="intro-sub">An interactive spatial analysis tool for exploring Vienna's urban environment.</p>
-        <p>This tool was built to help newcomers, residents, and researchers understand how Vienna's districts differ in terms of <strong>facility access</strong> and <strong>environmental conditions</strong>. The layers were chosen to reflect the everyday needs of someone navigating a new city: schools, kindergartens, playgrounds, and parks for families; advisory centers and accessible banks for practical support; defibrillators and cultural venues for safety and leisure.</p>
-        <p>The <strong>Urban Heat Vulnerability Index</strong> layer highlights which districts face the greatest heat stress — relevant context for housing decisions and urban planning.</p>
+        <p>This tool was built to help newcomers, residents, and researchers understand how Vienna's districts differ in terms of <strong>facility access</strong> and <strong>environmental conditions</strong>. The layers were chosen to reflect the everyday needs of someone navigating a new city: schools, kindergartens, playgrounds, and parks for families; advisory centers and accessible banks for practical support; defibrillators and cultural venues for safety and leisure. <strong>Tourist spots</strong> are grouped into categories such as Sightseeing, Music and Theatre, and Leisure; these can be filtered individually from the left panel.</p>
+        <p>The <strong>Urban Heat Vulnerability Index</strong> layer highlights heat stress at sub-district level across Vienna: relevant context for housing decisions and urban planning.</p>
         <div class="intro-how">
           <div class="intro-step"><span class="intro-icon">⊕</span><span>Drag or click the map to reposition the radius circle</span></div>
           <div class="intro-step"><span class="intro-icon">⊞</span><span>Adjust the radius size from the right panel</span></div>
