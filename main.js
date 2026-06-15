@@ -43,6 +43,7 @@ const UHVI_COLOR = [
 let map;
 let centerMarker;
 let districtsGeoJSON;
+let subDistrictsGeoJSON;
 let crimeGeoJSON;
 const familyData = {};
 
@@ -64,27 +65,35 @@ async function main() {
   buildSkeleton();
   setStatus('Loading data…');
 
-  let districts, crime, uhviText;
+  let districts, crime, uhviText, subDistricts;
   try {
-    [districts, crime, uhviText] = await Promise.all([
+    [districts, crime, uhviText, subDistricts] = await Promise.all([
       fetch('/data/districts.geojson').then(r => r.json()),
       fetch('/data/crime.geojson').then(r => r.json()).catch(() => emptyFC()),
       fetch('/data/Urban Heat Vulnerability Index (UHVI) Vienna.csv').then(r => r.text()).catch(() => ''),
+      fetch('/data/ZAEHLBEZIRKOGD.json').then(r => r.json()),
     ]);
   } catch {
     setStatus('Failed to load data — check console', true);
     return;
   }
 
-  const uhviByDistrict = parseUHVI(uhviText);
+  const uhviByDistrict    = parseUHVI(uhviText);
+  const uhviBySubDistrict = parseUHVISubDistricts(uhviText);
 
-  // Assign numeric IDs and computed properties
+  // Assign numeric IDs and computed properties to districts
   districts.features.forEach((f, i) => {
     f.id = i;
     f.properties._area   = +(f.properties.FLAECHE / 1_000_000).toFixed(2);
     f.properties._crimes = 0;
     const distNum = Math.round(f.properties.BEZNR);
     f.properties._uhvi = uhviByDistrict[distNum] ?? null;
+  });
+
+  // Join UHVI scores to sub-districts via ZBEZ key
+  subDistricts.features.forEach((f, i) => {
+    f.id = i;
+    f.properties._uhvi = uhviBySubDistrict[f.properties.ZBEZ] ?? null;
   });
 
   // Compute label centroids from actual polygon geometry
@@ -108,11 +117,12 @@ async function main() {
     }
   }
 
-  districtsGeoJSON = districts;
-  crimeGeoJSON     = crime;
+  districtsGeoJSON    = districts;
+  subDistrictsGeoJSON = subDistricts;
+  crimeGeoJSON        = crime;
 
   buildLegend('heat');
-  initMap(districts, labels, crime);
+  initMap(districts, labels, crime, subDistricts);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -144,6 +154,7 @@ function buildSkeleton() {
           <div class="intro-step"><span class="intro-icon">⌕</span><span>Search any Vienna address to jump directly to a location</span></div>
         </div>
         <button class="intro-btn" id="intro-close">Explore the map →</button>
+        <p class="intro-source">Data: <a href="https://www.data.gv.at" target="_blank">data.gv.at</a> and <a href="https://data.wien.gv.at" target="_blank">data.wien.gv.at</a> (City of Vienna Open Data)</p>
       </div>
     </div>
 
@@ -225,7 +236,7 @@ function buildSkeleton() {
 // Map
 // ─────────────────────────────────────────────────────────────────────────────
 
-function initMap(districts, labels, crime) {
+function initMap(districts, labels, crime, subDistricts) {
   map = new maplibregl.Map({
     container: 'map',
     style: BASEMAP,
@@ -236,7 +247,7 @@ function initMap(districts, labels, crime) {
   map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
   map.on('load', () => {
-    addSources(districts, labels, crime);
+    addSources(districts, labels, crime, subDistricts);
     addLayers();
     applyMode(state.mode);
     setupInteractions();
@@ -246,9 +257,10 @@ function initMap(districts, labels, crime) {
   });
 }
 
-function addSources(districts, labels, crime) {
-  map.addSource('districts', { type: 'geojson', data: districts });
-  map.addSource('labels',    { type: 'geojson', data: labels });
+function addSources(districts, labels, crime, subDistricts) {
+  map.addSource('districts',    { type: 'geojson', data: districts });
+  map.addSource('subdistricts', { type: 'geojson', data: subDistricts });
+  map.addSource('labels',       { type: 'geojson', data: labels });
   map.addSource('crime', {
     type: 'geojson',
     data: crime,
@@ -278,6 +290,26 @@ function addLayers() {
         0.30,
       ],
     },
+  });
+
+  // Sub-district fill — granular UHVI choropleth (heat mode only)
+  map.addLayer({
+    id: 'subdistricts-fill',
+    type: 'fill',
+    source: 'subdistricts',
+    paint: {
+      'fill-color': UHVI_COLOR,
+      'fill-opacity': 0.80,
+    },
+    layout: { visibility: 'none' },
+  });
+
+  map.addLayer({
+    id: 'subdistricts-line',
+    type: 'line',
+    source: 'subdistricts',
+    paint: { 'line-color': '#1a1612', 'line-opacity': 0.15, 'line-width': 0.5 },
+    layout: { visibility: 'none' },
   });
 
   // District outline
@@ -736,8 +768,11 @@ function applyMode(mode) {
 
   document.getElementById('btn-heatmap').disabled = mode !== 'crime';
 
-  map.setPaintProperty('districts-fill', 'fill-color',
-    mode === 'heat' ? UHVI_COLOR : AREA_COLOR);
+  const heatVis = mode === 'heat' ? 'visible' : 'none';
+  map.setLayoutProperty('subdistricts-fill', 'visibility', heatVis);
+  map.setLayoutProperty('subdistricts-line', 'visibility', heatVis);
+  map.setLayoutProperty('districts-fill', 'visibility', mode === 'heat' ? 'none' : 'visible');
+  map.setPaintProperty('districts-fill', 'fill-color', AREA_COLOR);
 
   buildLegend(mode);
 
@@ -827,8 +862,8 @@ function countCrimesInRadius(circle) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function getHeatInRadius(circle) {
-  if (!districtsGeoJSON) return null;
-  const scores = districtsGeoJSON.features
+  if (!subDistrictsGeoJSON) return null;
+  const scores = subDistrictsGeoJSON.features
     .filter(f => f.properties._uhvi != null && turf.booleanIntersects(circle, f))
     .map(f => f.properties._uhvi);
   if (!scores.length) return null;
@@ -865,6 +900,28 @@ function parseUHVI(text) {
   const result = {};
   for (const k of Object.keys(sums))
     result[+k] = +(sums[k] / counts[k]).toFixed(4);
+  return result;
+}
+
+function parseUHVISubDistricts(text) {
+  if (!text) return {};
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(';').map(h => h.trim());
+  const subCodeIdx = headers.indexOf('SUB_DISTRICT_CODE_VIE');
+  const uhviIdx    = headers.indexOf('AVG_UHVI_A');
+  if (subCodeIdx === -1 || uhviIdx === -1) return {};
+
+  const result = {};
+  for (const line of lines.slice(1)) {
+    const cols  = line.split(';');
+    const code  = parseInt(cols[subCodeIdx]);
+    const uhvi  = parseFloat(cols[uhviIdx].replace(',', '.'));
+    if (isNaN(code) || isNaN(uhvi)) continue;
+    const distNum = Math.floor((code - 90000) / 100);
+    const subNum  = code % 100;
+    const zbez    = String(distNum) + String(subNum).padStart(2, '0');
+    result[zbez]  = +uhvi.toFixed(4);
+  }
   return result;
 }
 

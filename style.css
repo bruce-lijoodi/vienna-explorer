@@ -723,6 +723,18 @@ input[type="range"]:disabled {
   background: var(--ink-soft);
 }
 
+.intro-source {
+  margin-top: 10px;
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.intro-source a {
+  color: var(--ink-muted);
+  text-decoration: underline;
+}
+
 /* ── ADDRESS SEARCH ── */
 .search-bar {
   position: absolute;
