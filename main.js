@@ -69,6 +69,9 @@ const state = {
 async function main() {
   FAMILY_LAYERS = await fetch('/data/layers.json').then(r => r.json()).catch(() => []);
   buildSkeleton();
+  document.getElementById('intro-close').addEventListener('click', () => {
+    document.getElementById('intro-overlay').classList.add('hidden');
+  });
   setStatus('Loading data…');
 
   let districts, crime, uhviText, subDistricts;
@@ -815,10 +818,6 @@ function wireControls() {
   });
 
   wireSearch();
-
-  document.getElementById('intro-close').addEventListener('click', () => {
-    document.getElementById('intro-overlay').classList.add('hidden');
-  });
 
   function closeMobilePanels() {
     document.querySelector('.layer-switcher').classList.remove('mobile-open');
