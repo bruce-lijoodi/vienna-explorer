@@ -811,8 +811,6 @@ input[type="range"]:disabled {
 
   .intro-card {
     padding: 24px 18px;
-    max-height: 90vh;
-    overflow-y: auto;
   }
 
   .intro-how {
@@ -843,6 +841,8 @@ input[type="range"]:disabled {
   padding: 36px 40px;
   max-width: 520px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .intro-card h2 {
