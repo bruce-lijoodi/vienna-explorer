@@ -293,7 +293,7 @@ function addSources(districts, labels, crime, subDistricts) {
   }
 }
 
-function addShapeImage(imageId, color, shape) {
+function drawShapeToCanvas(color, shape) {
   const size = 28;
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
@@ -308,10 +308,9 @@ function addShapeImage(imageId, color, shape) {
 
   ctx.beginPath();
   switch (shape) {
-    case 'square': {
+    case 'square':
       ctx.rect(pad, pad, size - pad * 2, size - pad * 2);
       break;
-    }
     case 'diamond':
       ctx.moveTo(h, pad);
       ctx.lineTo(size - pad, h);
@@ -340,27 +339,19 @@ function addShapeImage(imageId, color, shape) {
     }
     case 'cross': {
       const arm = size * 0.22;
-      ctx.moveTo(h - arm, pad);
-      ctx.lineTo(h + arm, pad);
-      ctx.lineTo(h + arm, h - arm);
-      ctx.lineTo(size - pad, h - arm);
-      ctx.lineTo(size - pad, h + arm);
-      ctx.lineTo(h + arm, h + arm);
-      ctx.lineTo(h + arm, size - pad);
-      ctx.lineTo(h - arm, size - pad);
-      ctx.lineTo(h - arm, h + arm);
-      ctx.lineTo(pad, h + arm);
-      ctx.lineTo(pad, h - arm);
-      ctx.lineTo(h - arm, h - arm);
+      ctx.moveTo(h - arm, pad);   ctx.lineTo(h + arm, pad);
+      ctx.lineTo(h + arm, h - arm); ctx.lineTo(size - pad, h - arm);
+      ctx.lineTo(size - pad, h + arm); ctx.lineTo(h + arm, h + arm);
+      ctx.lineTo(h + arm, size - pad); ctx.lineTo(h - arm, size - pad);
+      ctx.lineTo(h - arm, h + arm); ctx.lineTo(pad, h + arm);
+      ctx.lineTo(pad, h - arm);   ctx.lineTo(h - arm, h - arm);
       ctx.closePath();
       break;
     }
   }
-
   ctx.fill();
   ctx.stroke();
-  const px = ctx.getImageData(0, 0, size, size);
-  map.addImage(imageId, { width: size, height: size, data: new Uint8Array(px.data.buffer) });
+  return ctx.getImageData(0, 0, size, size);
 }
 
 function addLayers() {
@@ -511,44 +502,34 @@ function addLayers() {
         layout: { visibility: 'visible' },
       });
     } else {
-      let addedAsSymbol = false;
-      try {
-        addShapeImage(`${id}-icon`, color, shape);
-        map.addLayer({
-          id: `${id}-points`,
-          type: 'symbol',
-          source: id,
-          layout: {
-            'icon-image':            `${id}-icon`,
-            'icon-size':             ['interpolate', ['linear'], ['zoom'], 9, 0.22, 12, 0.44, 16, 0.85],
-            'icon-allow-overlap':    true,
-            'icon-ignore-placement': true,
-            'visibility':            'visible',
-          },
-          paint: { 'icon-opacity': 0.88 },
-        });
-        addedAsSymbol = true;
-      } catch (e) {
-        console.warn(`Shape layer failed for ${id} (${shape}), falling back to circle:`, e);
-      }
-
-      if (!addedAsSymbol) {
-        map.addLayer({
-          id: `${id}-points`,
-          type: 'circle',
-          source: id,
-          paint: {
-            'circle-radius':       ['interpolate', ['linear'], ['zoom'], 9, 2, 12, 4, 16, 8],
-            'circle-color':        color,
-            'circle-opacity':      0.85,
-            'circle-stroke-width': 1.5,
-            'circle-stroke-color': '#f5f0e8',
-          },
-          layout: { visibility: 'visible' },
-        });
-      }
+      // Images are loaded on demand via the styleimagemissing handler below
+      map.addLayer({
+        id: `${id}-points`,
+        type: 'symbol',
+        source: id,
+        layout: {
+          'icon-image':            `${id}-icon`,
+          'icon-size':             ['interpolate', ['linear'], ['zoom'], 9, 0.22, 12, 0.44, 16, 0.85],
+          'icon-allow-overlap':    true,
+          'icon-ignore-placement': true,
+          'visibility':            'visible',
+        },
+        paint: { 'icon-opacity': 0.88 },
+      });
     }
   }
+
+  // Fired when a symbol layer needs an icon that isn't loaded yet.
+  // Adding the image synchronously here makes MapLibre use it in the same frame.
+  map.on('styleimagemissing', (e) => {
+    const layer = FAMILY_LAYERS.find(l => `${l.id}-icon` === e.id);
+    if (!layer || layer.shape === 'circle') return;
+    try {
+      map.addImage(e.id, drawShapeToCanvas(layer.color, layer.shape));
+    } catch (err) {
+      console.warn('Shape image failed for', e.id, err);
+    }
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
