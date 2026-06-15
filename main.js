@@ -572,13 +572,17 @@ function setupInteractions() {
     map.getCanvas().style.cursor = '';
   });
 
-  // Click — districts: move circle center, also select in districts mode
+  // Click — districts: move circle center, also select in districts mode.
+  // Skip entirely if the click landed on a POI or crime feature so that
+  // opening a point popup does not also reposition the circle.
   map.on('click', 'districts-fill', e => {
+    const poiLayers = FAMILY_LAYERS.map(l => `${l.id}-points`);
+    const onPOI  = map.queryRenderedFeatures(e.point, { layers: poiLayers });
     const onCrime = map.queryRenderedFeatures(e.point, { layers: ['crime-points', 'crime-clusters'] });
-    if (!onCrime.length) {
-      centerMarker?.setLngLat(e.lngLat);
-      moveCircleTo(e.lngLat);
-    }
+    if (onPOI.length || onCrime.length) return;
+
+    centerMarker?.setLngLat(e.lngLat);
+    moveCircleTo(e.lngLat);
 
     if (state.mode === 'districts') {
       toggleSelect(e.features[0].id, e.features[0].properties, e.lngLat);
