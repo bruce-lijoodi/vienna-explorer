@@ -309,7 +309,7 @@ function addShapeImage(imageId, color, shape) {
   ctx.beginPath();
   switch (shape) {
     case 'square': {
-      ctx.roundRect(pad, pad, size - pad * 2, size - pad * 2, 2);
+      ctx.rect(pad, pad, size - pad * 2, size - pad * 2);
       break;
     }
     case 'diamond':
