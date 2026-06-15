@@ -159,7 +159,8 @@ function buildSkeleton() {
         <div class="intro-how">
           <div class="intro-step"><span class="intro-icon">⊕</span><span>Drag or click the map to reposition the radius circle</span></div>
           <div class="intro-step"><span class="intro-icon">⊞</span><span>Adjust the radius size from the right panel</span></div>
-          <div class="intro-step"><span class="intro-icon">↳</span><span>Toggle individual layers on/off from the left panel; Tourist Spots can be filtered by category</span></div>
+          <div class="intro-step"><span class="intro-icon">↳</span><span>Toggle layers from the left panel (tap <strong>☰ Layers</strong> on mobile); Tourist Spots can be filtered by category</span></div>
+          <div class="intro-step"><span class="intro-icon">↳</span><span>Access the radius analysis from the right panel (tap <strong>⊞ Analysis</strong> on mobile)</span></div>
           <div class="intro-step"><span class="intro-icon">⌕</span><span>Search any Vienna address to jump directly to a location</span></div>
         </div>
         <button class="intro-btn" id="intro-close">Explore the map →</button>
@@ -167,8 +168,12 @@ function buildSkeleton() {
       </div>
     </div>
 
-    <button class="mobile-toggle" id="mobile-left-toggle" aria-label="Toggle layers">☰</button>
-    <button class="mobile-toggle mobile-toggle-right" id="mobile-right-toggle" aria-label="Toggle analysis">⊞</button>
+    <button class="mobile-toggle" id="mobile-left-toggle" aria-label="Toggle layers">
+      <span>☰</span><span class="mobile-toggle-label">Layers</span>
+    </button>
+    <button class="mobile-toggle mobile-toggle-right" id="mobile-right-toggle" aria-label="Toggle analysis">
+      <span>⊞</span><span class="mobile-toggle-label">Analysis</span>
+    </button>
     <div class="mobile-backdrop" id="mobile-backdrop"></div>
 
     <header class="app-header">
