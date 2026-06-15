@@ -49,7 +49,6 @@ let map;
 let centerMarker;
 let districtsGeoJSON;
 let subDistrictsGeoJSON;
-let crimeGeoJSON;
 const familyData = {};
 
 const state = {
@@ -58,7 +57,6 @@ const state = {
   selectedId:   null,
   radiusKm:          1,
   radiusCenter:      null,
-  showHeatmap:       false,
   activeTouristCats: new Set(TOURIST_CATEGORIES.filter(c => c.default).map(c => c.de)),
 };
 
@@ -74,11 +72,10 @@ async function main() {
   });
   setStatus('Loading data…');
 
-  let districts, crime, uhviText, subDistricts;
+  let districts, uhviText, subDistricts;
   try {
-    [districts, crime, uhviText, subDistricts] = await Promise.all([
+    [districts, uhviText, subDistricts] = await Promise.all([
       fetch('/data/districts.geojson').then(r => r.json()),
-      fetch('/data/crime.geojson').then(r => r.json()).catch(() => emptyFC()),
       fetch('/data/Urban Heat Vulnerability Index (UHVI) Vienna.csv').then(r => r.text()).catch(() => ''),
       fetch('/data/ZAEHLBEZIRKOGD.json').then(r => r.json()),
     ]);
@@ -94,7 +91,6 @@ async function main() {
   districts.features.forEach((f, i) => {
     f.id = i;
     f.properties._area   = +(f.properties.FLAECHE / 1_000_000).toFixed(2);
-    f.properties._crimes = 0;
     const distNum = Math.round(f.properties.BEZNR);
     f.properties._uhvi = uhviByDistrict[distNum] ?? null;
   });
@@ -115,23 +111,11 @@ async function main() {
     }),
   };
 
-  // Count crimes per district
-  for (const pt of crime.features) {
-    const point = turf.point(pt.geometry.coordinates);
-    for (const district of districts.features) {
-      if (turf.booleanPointInPolygon(point, district)) {
-        district.properties._crimes++;
-        break;
-      }
-    }
-  }
-
   districtsGeoJSON    = districts;
   subDistrictsGeoJSON = subDistricts;
-  crimeGeoJSON        = crime;
 
   buildLegend('heat');
-  initMap(districts, labels, crime, subDistricts);
+  initMap(districts, labels, subDistricts);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -219,7 +203,6 @@ function buildSkeleton() {
         </div>
         <input id="radius-slider" type="range" min="0.5" max="10" step="0.5" value="1" />
       </div>
-      <button class="panel-btn" id="btn-heatmap" disabled>⬡ Toggle Heatmap</button>
       <button class="panel-btn" id="btn-fit">⊞ Fit Vienna</button>
       <div class="status-text" id="status-text">Loading…</div>
       <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:2px">
@@ -259,7 +242,7 @@ function buildSkeleton() {
 // Map
 // ─────────────────────────────────────────────────────────────────────────────
 
-function initMap(districts, labels, crime, subDistricts) {
+function initMap(districts, labels, subDistricts) {
   map = new maplibregl.Map({
     container: 'map',
     style: BASEMAP,
@@ -270,7 +253,7 @@ function initMap(districts, labels, crime, subDistricts) {
   map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
   map.on('load', () => {
-    addSources(districts, labels, crime, subDistricts);
+    addSources(districts, labels, subDistricts);
     addLayers();
     applyMode(state.mode);
     setupInteractions();
@@ -280,17 +263,10 @@ function initMap(districts, labels, crime, subDistricts) {
   });
 }
 
-function addSources(districts, labels, crime, subDistricts) {
+function addSources(districts, labels, subDistricts) {
   map.addSource('districts',    { type: 'geojson', data: districts });
   map.addSource('subdistricts', { type: 'geojson', data: subDistricts });
   map.addSource('labels',       { type: 'geojson', data: labels });
-  map.addSource('crime', {
-    type: 'geojson',
-    data: crime,
-    cluster: true,
-    clusterMaxZoom: 14,
-    clusterRadius: 40,
-  });
   map.addSource('radius-circle', { type: 'geojson', data: emptyFC() });
 
   for (const { id } of FAMILY_LAYERS) {
@@ -432,50 +408,6 @@ function addLayers() {
   });
 
   // Crime clusters
-  map.addLayer({
-    id: 'crime-clusters',
-    type: 'circle',
-    source: 'crime',
-    filter: ['has', 'point_count'],
-    paint: {
-      'circle-color':        ['step', ['get', 'point_count'], '#e07070', 10, '#c0392b', 50, '#7b1a10'],
-      'circle-radius':       ['step', ['get', 'point_count'], 14, 10, 22, 50, 32],
-      'circle-opacity':      0.85,
-      'circle-stroke-width': 1.5,
-      'circle-stroke-color': '#f5f0e8',
-    },
-    layout: { visibility: 'none' },
-  });
-
-  map.addLayer({
-    id: 'crime-cluster-count',
-    type: 'symbol',
-    source: 'crime',
-    filter: ['has', 'point_count'],
-    layout: {
-      'text-field': ['get', 'point_count_abbreviated'],
-      'text-font':  ['Open Sans Bold', 'Arial Unicode MS Bold'],
-      'text-size':  11,
-      visibility:   'none',
-    },
-    paint: { 'text-color': '#fff' },
-  });
-
-  map.addLayer({
-    id: 'crime-points',
-    type: 'circle',
-    source: 'crime',
-    filter: ['!', ['has', 'point_count']],
-    paint: {
-      'circle-radius':       5,
-      'circle-color':        '#c0392b',
-      'circle-opacity':      0.8,
-      'circle-stroke-width': 1,
-      'circle-stroke-color': '#f5f0e8',
-    },
-    layout: { visibility: 'none' },
-  });
-
   // Radius search circle
   map.addLayer({
     id: 'radius-fill',
@@ -578,13 +510,12 @@ function setupInteractions() {
   });
 
   // Click — districts: move circle center, also select in districts mode.
-  // Skip entirely if the click landed on a POI or crime feature so that
-  // opening a point popup does not also reposition the circle.
+  // Skip entirely if the click landed on a POI so that opening a point
+  // popup does not also reposition the circle.
   map.on('click', 'districts-fill', e => {
     const poiLayers = FAMILY_LAYERS.map(l => `${l.id}-points`);
-    const onPOI  = map.queryRenderedFeatures(e.point, { layers: poiLayers });
-    const onCrime = map.queryRenderedFeatures(e.point, { layers: ['crime-points', 'crime-clusters'] });
-    if (onPOI.length || onCrime.length) return;
+    const onPOI = map.queryRenderedFeatures(e.point, { layers: poiLayers });
+    if (onPOI.length) return;
 
     centerMarker?.setLngLat(e.lngLat);
     moveCircleTo(e.lngLat);
@@ -594,16 +525,6 @@ function setupInteractions() {
     }
   });
 
-  // Click — individual crime point
-  map.on('click', 'crime-points', e => {
-    openPopup(e.lngLat, buildCrimeCard(e.features[0].properties));
-  });
-
-  // Cursor on crime
-  map.on('mouseenter', 'crime-points',   () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'crime-points',   () => { map.getCanvas().style.cursor = ''; });
-  map.on('mouseenter', 'crime-clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', 'crime-clusters', () => { map.getCanvas().style.cursor = ''; });
 
   // Family layers — click popup + cursor
   for (const { id, label } of FAMILY_LAYERS) {
@@ -669,14 +590,6 @@ function buildDistrictCard(p) {
     </div>`;
 }
 
-function buildCrimeCard(p) {
-  const rows = Object.entries(p)
-    .filter(([k]) => !k.startsWith('_') && k !== 'cluster_id')
-    .map(([k, v]) => `<div class="popup-stat"><span>${k}</span><strong>${v}</strong></div>`)
-    .join('') || '<p style="font-size:.75rem;color:var(--ink-muted);padding:4px 0">No attributes available</p>';
-  return `<div class="map-popup-card"><h4>Crime Incident</h4>${rows}</div>`;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Hover info bar
 // ─────────────────────────────────────────────────────────────────────────────
@@ -724,7 +637,7 @@ function buildLegend(mode = 'districts') {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function wireControls() {
-  // Mode buttons (Districts / Crime) — mutually exclusive
+  // Mode buttons
   document.querySelectorAll('.layer-btn[data-layer]').forEach(btn => {
     btn.addEventListener('click', () => {
       const layer = btn.dataset.layer;
@@ -812,12 +725,6 @@ function wireControls() {
     state.radiusKm = +slider.value;
     document.getElementById('radius-val').textContent = `${state.radiusKm.toFixed(1)} km`;
     if (centerMarker) moveCircleTo(centerMarker.getLngLat());
-  });
-
-  // Heatmap toggle (ready for when crime data arrives)
-  document.getElementById('btn-heatmap').addEventListener('click', () => {
-    state.showHeatmap = !state.showHeatmap;
-    setStatus(state.showHeatmap ? 'Heatmap on — load crime data to see results' : 'Heatmap off');
   });
 
   // Fit button — reset view and circle to Vienna center
@@ -933,12 +840,6 @@ function wireSearch() {
 }
 
 function applyMode(mode) {
-  const crimeVis = mode === 'crime' ? 'visible' : 'none';
-  ['crime-clusters', 'crime-cluster-count', 'crime-points'].forEach(id =>
-    map.setLayoutProperty(id, 'visibility', crimeVis));
-
-  document.getElementById('btn-heatmap').disabled = mode !== 'crime';
-
   const heatVis = mode === 'heat' ? 'visible' : 'none';
   map.setLayoutProperty('subdistricts-fill', 'visibility', heatVis);
   map.setLayoutProperty('subdistricts-line', 'visibility', heatVis);
@@ -946,10 +847,7 @@ function applyMode(mode) {
 
   buildLegend(mode);
 
-  const hasCrime = crimeGeoJSON?.features?.length > 0;
-  setStatus(mode === 'crime'
-    ? (hasCrime ? 'Click anywhere to search by radius' : 'No crime data loaded yet')
-    : mode === 'heat'
+  setStatus(mode === 'heat'
     ? 'Hover a district to see its heat vulnerability score'
     : 'Click a district to select it and draw a radius');
 }
@@ -1019,13 +917,6 @@ function updateRadiusOverlay(circle) {
   const val = document.getElementById('heat-radius-val');
   if (dot) dot.style.background = color;
   if (val) val.textContent = score != null ? `${score.toFixed(3)} · ${label}` : '—';
-}
-
-function countCrimesInRadius(circle) {
-  if (!crimeGeoJSON?.features.length) return 0;
-  return crimeGeoJSON.features.filter(f =>
-    turf.booleanPointInPolygon(turf.point(f.geometry.coordinates), circle)
-  ).length;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
