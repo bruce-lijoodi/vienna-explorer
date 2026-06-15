@@ -172,6 +172,7 @@ function buildSkeleton() {
 
     <button class="mobile-toggle" id="mobile-left-toggle" aria-label="Toggle layers">☰</button>
     <button class="mobile-toggle mobile-toggle-right" id="mobile-right-toggle" aria-label="Toggle analysis">⊞</button>
+    <div class="mobile-backdrop" id="mobile-backdrop"></div>
 
     <header class="app-header">
       <h1>Vienna Explorer</h1>
@@ -724,20 +725,26 @@ function wireControls() {
     document.getElementById('intro-overlay').classList.add('hidden');
   });
 
-  document.getElementById('mobile-left-toggle').addEventListener('click', () => {
-    document.querySelector('.layer-switcher').classList.toggle('mobile-open');
+  function closeMobilePanels() {
+    document.querySelector('.layer-switcher').classList.remove('mobile-open');
     document.querySelector('.map-panel').classList.remove('mobile-open');
+    document.getElementById('mobile-backdrop').classList.remove('visible');
+  }
+
+  document.getElementById('mobile-left-toggle').addEventListener('click', () => {
+    const isOpen = document.querySelector('.layer-switcher').classList.toggle('mobile-open');
+    document.querySelector('.map-panel').classList.remove('mobile-open');
+    document.getElementById('mobile-backdrop').classList.toggle('visible', isOpen);
   });
 
   document.getElementById('mobile-right-toggle').addEventListener('click', () => {
-    document.querySelector('.map-panel').classList.toggle('mobile-open');
+    const isOpen = document.querySelector('.map-panel').classList.toggle('mobile-open');
     document.querySelector('.layer-switcher').classList.remove('mobile-open');
+    document.getElementById('mobile-backdrop').classList.toggle('visible', isOpen);
   });
 
-  document.getElementById('map').addEventListener('click', () => {
-    document.querySelector('.layer-switcher').classList.remove('mobile-open');
-    document.querySelector('.map-panel').classList.remove('mobile-open');
-  });
+  document.getElementById('mobile-backdrop').addEventListener('click', closeMobilePanels);
+  document.getElementById('map').addEventListener('click', closeMobilePanels);
 }
 
 function wireSearch() {

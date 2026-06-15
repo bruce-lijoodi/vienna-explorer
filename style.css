@@ -689,16 +689,16 @@ input[type="range"]:disabled {
 /* ── MOBILE TOGGLES (hidden on desktop) ── */
 .mobile-toggle {
   display: none;
-  position: absolute;
+  position: fixed;
   top: 12px;
   left: 12px;
-  z-index: 20;
-  width: 38px;
-  height: 38px;
+  z-index: 300;
+  width: 44px;
+  height: 44px;
   background: var(--panel-bg);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
   align-items: center;
   justify-content: center;
@@ -709,8 +709,20 @@ input[type="range"]:disabled {
   right: 12px;
 }
 
+.mobile-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 22, 18, 0.45);
+  z-index: 199;
+}
+
+.mobile-backdrop.visible {
+  display: block;
+}
+
 /* ── MOBILE LAYOUT ── */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .mobile-toggle {
     display: flex;
   }
@@ -720,46 +732,56 @@ input[type="range"]:disabled {
   }
 
   .search-bar {
+    position: fixed;
     top: 12px;
-    left: 58px;
-    right: 58px;
+    left: 66px;
+    right: 66px;
     width: auto;
     transform: none;
+    z-index: 20;
   }
 
   .layer-switcher {
-    top: 58px;
+    position: fixed;
+    top: 0;
     left: 0;
-    right: 0;
-    max-height: 70vh;
+    bottom: 0;
+    width: min(280px, 80vw);
+    max-height: 100vh;
     overflow-y: auto;
-    display: none;
-    z-index: 15;
+    z-index: 200;
+    padding: 68px 10px env(safe-area-inset-bottom, 20px);
     background: var(--panel-bg);
-    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
     box-shadow: var(--shadow);
-    padding: 8px;
+    transform: translateX(-110%);
+    transition: transform 0.25s ease;
+    display: flex;
   }
 
   .layer-switcher.mobile-open {
-    display: flex;
+    transform: translateX(0);
   }
 
   .map-panel {
-    top: 58px;
+    position: fixed;
+    top: 0;
     right: 0;
-    left: 0;
-    width: 100%;
-    max-height: 70vh;
+    bottom: 0;
+    width: min(300px, 88vw);
+    max-height: 100vh;
     overflow-y: auto;
-    display: none;
-    z-index: 15;
-    border-left: none;
-    border-top: 1px solid var(--border);
+    z-index: 200;
+    padding-top: 68px;
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transform: translateX(110%);
+    transition: transform 0.25s ease;
+    display: flex;
   }
 
   .map-panel.mobile-open {
-    display: flex;
+    transform: translateX(0);
   }
 
   .legend-panel {
@@ -767,17 +789,27 @@ input[type="range"]:disabled {
   }
 
   .district-info {
-    bottom: 0;
-    max-width: 100%;
-    white-space: normal;
+    bottom: env(safe-area-inset-bottom, 0);
     left: 0;
     right: 0;
     transform: none;
+    max-width: 100%;
+    white-space: normal;
     border-top: 1px solid var(--border);
   }
 
+  .intro-overlay {
+    padding: 16px;
+  }
+
   .intro-card {
-    padding: 24px 20px;
+    padding: 24px 18px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .intro-how {
+    margin: 14px 0 18px;
   }
 }
 
