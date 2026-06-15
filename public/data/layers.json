@@ -1,8 +1,8 @@
 [
-  { "id": "playgrounds",    "wfsType": "SPIELPLAETZE",    "color": "#e67e22", "label": "Playgrounds"      },
-  { "id": "kindergartens",  "wfsType": "KINDERGARTENOGD", "color": "#16a085", "label": "Kindergartens"    },
-  { "id": "schools",        "wfsType": "SCHULENOGD",      "color": "#8e44ad", "label": "Schools"          },
-  { "id": "parks",          "wfsType": "PARKANLAGEN",     "color": "#27ae60", "label": "Parks"            },
+  { "id": "playgrounds",   "file": "Playgrounds.json",   "color": "#e67e22", "label": "Playgrounds"   },
+  { "id": "kindergartens", "wfsType": "KINDERGARTENOGD", "color": "#16a085", "label": "Kindergartens" },
+  { "id": "schools",       "file": "Schools.json",       "color": "#8e44ad", "label": "Schools"       },
+  { "id": "parks",         "file": "Parks.json",         "color": "#27ae60", "label": "Parks"         },
   { "id": "advisory",       "file": "Advisory Centers for Care and Support.json", "color": "#0097a7", "label": "Advisory Centers" },
   { "id": "defibrillators",    "file": "DEFIBRILLATOROS.json",                      "color": "#e53935", "label": "Defibrillators"        },
   { "id": "cultural-summer", "file": "Cultural Summer Locations.json",             "color": "#f57c00", "label": "Cultural Summer"       },

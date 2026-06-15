@@ -131,6 +131,22 @@ function buildSkeleton() {
   document.getElementById('app').innerHTML = `
     <div id="map"></div>
 
+    <div class="intro-overlay" id="intro-overlay">
+      <div class="intro-card">
+        <h2>Vienna Explorer</h2>
+        <p class="intro-sub">An interactive spatial analysis tool for exploring Vienna's urban environment.</p>
+        <p>This tool was built to help newcomers, residents, and researchers understand how Vienna's districts differ in terms of <strong>facility access</strong> and <strong>environmental conditions</strong>. The layers were chosen to reflect the everyday needs of someone navigating a new city: schools, kindergartens, playgrounds, and parks for families; advisory centers and accessible banks for practical support; defibrillators and cultural venues for safety and leisure.</p>
+        <p>The <strong>Urban Heat Vulnerability Index</strong> layer highlights which districts face the greatest heat stress — relevant context for housing decisions and urban planning.</p>
+        <div class="intro-how">
+          <div class="intro-step"><span class="intro-icon">⊕</span><span>Drag or click the map to reposition the radius circle</span></div>
+          <div class="intro-step"><span class="intro-icon">⊞</span><span>Adjust the radius size from the right panel</span></div>
+          <div class="intro-step"><span class="intro-icon">↳</span><span>Toggle individual layers on/off from the left panel</span></div>
+          <div class="intro-step"><span class="intro-icon">⌕</span><span>Search any Vienna address to jump directly to a location</span></div>
+        </div>
+        <button class="intro-btn" id="intro-close">Explore the map →</button>
+      </div>
+    </div>
+
     <header class="app-header">
       <h1>Vienna Explorer</h1>
       <span class="tagline">District &amp; Family Explorer</span>
@@ -626,6 +642,10 @@ function wireControls() {
   });
 
   wireSearch();
+
+  document.getElementById('intro-close').addEventListener('click', () => {
+    document.getElementById('intro-overlay').classList.add('hidden');
+  });
 }
 
 function wireSearch() {
@@ -892,7 +912,7 @@ function csvToGeoJSON(text) {
 }
 
 function buildFamilyCard(layerLabel, p) {
-  const name = p.BEZEICHNUNG || p.STANDORT || p.FILIALE || p.NAME || p.OBJNAME || layerLabel;
+  const name = p.BEZEICHNUNG || p.STANDORT || p.FILIALE || p.NAME || p.OBJNAME || p.ANL_NAME || layerLabel;
   const addr = p.ADRESSE || p.STRASSE || p.STREET || '';
   const rows = [
     addr                && `<div class="popup-stat"><span>Address</span><strong>${addr}</strong></div>`,
@@ -903,6 +923,10 @@ function buildFamilyCard(layerLabel, p) {
     p.CATEGORY_NAME     && `<div class="popup-stat"><span>Category</span><strong>${p.CATEGORY_NAME}</strong></div>`,
     p.SUBCATEGORY_NAME  && `<div class="popup-stat"><span>Type</span><strong>${p.SUBCATEGORY_NAME}</strong></div>`,
     p.OEFFNUNGSZEIT     && `<div class="popup-stat"><span>Hours</span><strong>${p.OEFFNUNGSZEIT}</strong></div>`,
+    p.OEFF_ZEITEN       && `<div class="popup-stat"><span>Hours</span><strong>${p.OEFF_ZEITEN}</strong></div>`,
+    p.ART_TXT           && `<div class="popup-stat"><span>Type</span><strong>${p.ART_TXT}</strong></div>`,
+    p.BETREUUNG         && `<div class="popup-stat"><span>Care</span><strong>${p.BETREUUNG}</strong></div>`,
+    p.SPIELPLATZ_DETAIL && `<div class="popup-stat"><span>Details</span><strong>${p.SPIELPLATZ_DETAIL}</strong></div>`,
     p.INFO              && `<div class="popup-stat"><span>Location</span><strong>${p.INFO}</strong></div>`,
     p.HINWEIS           && `<div class="popup-stat"><span>Availability</span><strong>${p.HINWEIS}</strong></div>`,
     p.ERREICHBARKEIT    && `<div class="popup-stat"><span>Transit</span><strong>${p.ERREICHBARKEIT}</strong></div>`,
