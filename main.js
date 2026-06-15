@@ -510,15 +510,9 @@ function addLayers() {
         layout: { visibility: 'visible' },
       });
     } else {
-      let usedShape = shape;
+      let addedAsSymbol = false;
       try {
         addShapeImage(`${id}-icon`, color, shape);
-      } catch (e) {
-        console.warn(`Shape image failed for ${id}, falling back to circle`, e);
-        usedShape = 'circle';
-      }
-
-      if (usedShape !== 'circle') {
         map.addLayer({
           id: `${id}-points`,
           type: 'symbol',
@@ -532,7 +526,12 @@ function addLayers() {
           },
           paint: { 'icon-opacity': 0.88 },
         });
-      } else {
+        addedAsSymbol = true;
+      } catch (e) {
+        console.warn(`Shape layer failed for ${id} (${shape}), falling back to circle:`, e);
+      }
+
+      if (!addedAsSymbol) {
         map.addLayer({
           id: `${id}-points`,
           type: 'circle',
