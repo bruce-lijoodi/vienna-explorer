@@ -2,7 +2,7 @@
 
 An interactive spatial analysis platform for Vienna: visualising urban heat vulnerability, facility access, and district-level patterns across the city.
 
-**Live app:** https://gregarious-syrniki-9a796f.netlify.app
+**Live app:** https://vienna-map-three.vercel.app
 
 ## Features
 
