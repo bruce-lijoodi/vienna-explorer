@@ -961,6 +961,25 @@ input[type="range"]:disabled {
   text-decoration: underline;
 }
 
+/* ── SITE CREDITS ── */
+.site-credits {
+  position: fixed;
+  bottom: 6px;
+  left: 8px;
+  z-index: 50;
+  font-size: 0.62rem;
+  color: var(--ink-muted);
+  background: rgba(245, 240, 232, 0.75);
+  padding: 2px 6px;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .site-credits {
+    display: none;
+  }
+}
+
 /* ── ADDRESS SEARCH ── */
 .search-bar {
   position: absolute;

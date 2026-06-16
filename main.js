@@ -149,8 +149,11 @@ function buildSkeleton() {
         </div>
         <button class="intro-btn" id="intro-close">Explore the map →</button>
         <p class="intro-source">Data: <a href="https://www.data.gv.at" target="_blank">data.gv.at</a> and <a href="https://data.wien.gv.at" target="_blank">data.wien.gv.at</a> (City of Vienna Open Data)</p>
+        <p class="intro-source">Created by Bruce Peace Lijoodi, Veronica Dadzie, and Kartkuzhakov Amirzhan</p>
       </div>
     </div>
+
+    <div class="site-credits">Vienna Explorer · Bruce Peace Lijoodi, Veronica Dadzie, Kartkuzhakov Amirzhan</div>
 
     <button class="mobile-toggle" id="mobile-left-toggle" aria-label="Toggle layers">
       <span>☰</span><span class="mobile-toggle-label">Layers</span>
