@@ -183,7 +183,7 @@ function buildSkeleton() {
       </button>
       <div class="layer-divider"></div>
       <button class="layer-btn active" data-layer="heat">
-        <span class="dot" style="background:#f03b20"></span>Heat Index
+        <span class="dot dot-circle" style="background:#f03b20"></span>Heat Index
       </button>
       <div class="layer-divider"></div>
       ${FAMILY_LAYERS.map(({ id, color, label, shape = 'circle' }) => `
@@ -212,7 +212,7 @@ function buildSkeleton() {
         <div class="panel-title" style="margin-bottom:6px">Within Radius</div>
         <div class="popup-stat">
           <span style="display:flex;align-items:center;gap:6px">
-            <span id="heat-radius-dot" style="width:8px;height:8px;border-radius:50%;background:#cccccc;flex-shrink:0;display:inline-block"></span>Heat Index
+            <span id="heat-radius-dot" class="dot dot-circle" style="background:#cccccc"></span>Heat Index
           </span>
           <strong id="heat-radius-val">—</strong>
         </div>
