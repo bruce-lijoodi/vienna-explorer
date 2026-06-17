@@ -183,7 +183,7 @@ function buildSkeleton() {
       </button>
       <div class="layer-divider"></div>
       <button class="layer-btn active" data-layer="heat">
-        <span class="dot dot-circle" style="background:#f03b20"></span>Heat Index
+        <span class="dot" id="heat-layer-dot" style="background:#cccccc"></span>Heat Index
       </button>
       <div class="layer-divider"></div>
       ${FAMILY_LAYERS.map(({ id, color, label, shape = 'circle' }) => `
@@ -212,7 +212,7 @@ function buildSkeleton() {
         <div class="panel-title" style="margin-bottom:6px">Within Radius</div>
         <div class="popup-stat">
           <span style="display:flex;align-items:center;gap:6px">
-            <span id="heat-radius-dot" class="dot dot-circle" style="background:#cccccc"></span>Heat Index
+            <span id="heat-radius-dot" class="dot" style="background:#cccccc"></span>Heat Index
           </span>
           <strong id="heat-radius-val">—</strong>
         </div>
@@ -917,8 +917,10 @@ function updateRadiusOverlay(circle) {
   const score = getHeatInRadius(circle);
   const { label, color } = uhviCategory(score);
   const dot = document.getElementById('heat-radius-dot');
+  const layerDot = document.getElementById('heat-layer-dot');
   const val = document.getElementById('heat-radius-val');
   if (dot) dot.style.background = color;
+  if (layerDot) layerDot.style.background = color;
   if (val) val.textContent = score != null ? `${score.toFixed(3)} · ${label}` : '—';
 }
 
